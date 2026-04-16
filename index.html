@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Q - 龙虾OpenClaw智能体服务 | 极大释放AI潜力</title>
+<meta name="description" content="Agent Q 龙虾OpenClaw智能体服务，基于OpenClaw/Hermes Agent/Opencore基座，容器化部署，技术开源，极大释放AI潜力，而不是作为玩具。">
+<meta name="keywords" content="Agent Q, OpenClaw, AI智能体, Hermes Agent, Opencore, AI部署, 容器化, 智能体服务">
+<meta property="og:title" content="Agent Q - 龙虾OpenClaw智能体服务">
+<meta property="og:description" content="极大释放AI潜力，而不是作为玩具。企业级AI智能体服务平台。">
+<link rel="icon" type="image/png" href="logo.png">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        amber: { 50:'#FFF9E6', 100:'#FFF0B3', 200:'#FFE066', 300:'#FFD233', 400:'#FFC300', 500:'#F5A623', 600:'#E8960F', 700:'#C77D00', 800:'#9A6100', 900:'#6D4500' },
+        brand: { blue:'#2979FF', red:'#FF4757', green:'#00C853', gold:'#F5C518', dark:'#1A1A2E' },
+      },
+      fontFamily: {
+        display: ['Syne','Noto Sans SC','sans-serif'],
+        body: ['DM Sans','Noto Sans SC','sans-serif'],
+        cn: ['Noto Sans SC','sans-serif'],
+      }
+    }
+  }
+}
+</script>
+<style>
+:root {
+  --gold: #F5C518; --gold-deep: #E8A900; --gold-light: #FFF0B3;
+  --blue: #2979FF; --red: #FF4757; --green: #00C853;
+  --dark: #1A1A2E; --darker: #0F0F1F;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body { font-family:'DM Sans','Noto Sans SC',sans-serif; color:#1A1A2E; overflow-x:hidden; }
+
+/* Geometric background pattern */
+.geo-bg {
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(245,197,24,0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(41,121,255,0.06) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(255,71,87,0.04) 0%, transparent 50%);
+}
+.diamond {
+  width:12px; height:12px; transform:rotate(45deg); display:inline-block;
+}
+/* Floating diamonds animation */
+@keyframes float-up { 0%{transform:rotate(45deg) translateY(0) scale(1);opacity:0.7} 50%{opacity:1} 100%{transform:rotate(45deg) translateY(-20px) scale(1.1);opacity:0.7} }
+@keyframes drift { 0%{transform:rotate(45deg) translate(0,0)} 50%{transform:rotate(45deg) translate(8px,-12px)} 100%{transform:rotate(45deg) translate(0,0)} }
+.diamond-float { animation: float-up 3s ease-in-out infinite alternate; }
+.diamond-drift { animation: drift 4s ease-in-out infinite; }
+
+/* Gold gradient text */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #F5C518 0%, #E8A900 50%, #FFD233 100%);
+  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+}
+/* Section reveal */
+.reveal { opacity:0; transform:translateY(40px); transition:all 0.8s cubic-bezier(0.16,1,0.3,1); }
+.reveal.active { opacity:1; transform:translateY(0); }
+.reveal-delay-1 { transition-delay:0.15s; }
+.reveal-delay-2 { transition-delay:0.3s; }
+.reveal-delay-3 { transition-delay:0.45s; }
+.reveal-delay-4 { transition-delay:0.6s; }
+
+/* Card hover */
+.card-hover { transition:all 0.4s cubic-bezier(0.16,1,0.3,1); }
+.card-hover:hover { transform:translateY(-8px); box-shadow:0 24px 48px rgba(245,197,24,0.15); }
+
+/* Nav glass */
+.nav-glass {
+  background:rgba(255,255,255,0.85); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(245,197,24,0.15);
+}
+.nav-glass.scrolled { background:rgba(255,255,255,0.95); box-shadow:0 4px 30px rgba(0,0,0,0.06); }
+
+/* Hero chevron */
+.hero-chevron {
+  width:280px; height:280px; position:relative;
+}
+.hero-chevron::before, .hero-chevron::after {
+  content:''; position:absolute; border-radius:8px;
+}
+.hero-chevron::before {
+  width:120px; height:180px; background:linear-gradient(180deg,#FFE066,#F5C518);
+  top:50px; left:30px; transform:rotate(-35deg); transform-origin:bottom center;
+}
+.hero-chevron::after {
+  width:120px; height:180px; background:linear-gradient(180deg,#FFD233,#E8A900);
+  top:50px; right:30px; transform:rotate(35deg); transform-origin:bottom center;
+}
+
+/* Pulse ring */
+@keyframes pulse-ring { 0%{transform:scale(0.9);opacity:0.6} 50%{transform:scale(1.05);opacity:0.3} 100%{transform:scale(0.9);opacity:0.6} }
+.pulse-ring { animation:pulse-ring 3s ease-in-out infinite; }
+
+/* Smooth scroll nav link */
+.nav-link { position:relative; }
+.nav-link::after { content:''; position:absolute; bottom:-2px; left:0; width:0; height:2px; background:var(--gold); transition:width 0.3s ease; }
+.nav-link:hover::after { width:100%; }
+
+/* Scenario card image area */
+.scenario-icon {
+  width:80px; height:80px; border-radius:20px; display:flex; align-items:center; justify-content:center;
+  font-size:2.5rem; position:relative; overflow:hidden;
+}
+.scenario-icon::before {
+  content:''; position:absolute; inset:0; opacity:0.15; border-radius:inherit;
+}
+
+/* Deployment card */
+.deploy-card {
+  position:relative; overflow:hidden; border:2px solid transparent;
+  transition:all 0.4s cubic-bezier(0.16,1,0.3,1);
+}
+.deploy-card:hover { border-color:var(--gold); }
+.deploy-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:4px;
+  background:linear-gradient(90deg,var(--gold),var(--gold-deep));
+  transform:scaleX(0); transition:transform 0.4s ease; transform-origin:left;
+}
+.deploy-card:hover::before { transform:scaleX(1); }
+
+/* Mobile menu */
+.mobile-menu { transform:translateX(100%); transition:transform 0.4s cubic-bezier(0.16,1,0.3,1); }
+.mobile-menu.open { transform:translateX(0); }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:#f1f1f1; }
+::-webkit-scrollbar-thumb { background:var(--gold); border-radius:3px; }
+</style>
+</head>
+<body class="bg-white">
+
+<!-- ===== NAVIGATION ===== -->
+<nav id="mainNav" class="nav-glass fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <a href="#" class="flex items-center gap-3 group">
+      <img src="logo.png" alt="Agent Q Logo" class="w-10 h-10 transition-transform duration-300 group-hover:scale-110">
+      <div>
+        <span class="font-display font-bold text-lg tracking-tight text-brand-dark">Agent Q</span>
+        <span class="text-xs text-amber-600 ml-1.5 font-medium hidden sm:inline">OpenClaw</span>
+      </div>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#principles" class="nav-link text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">服务原理</a>
+      <a href="#features" class="nav-link text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">核心特点</a>
+      <a href="#deploy" class="nav-link text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">部署方式</a>
+      <a href="#scenarios" class="nav-link text-sm font-medium text-gray-600 hover:text-brand-dark transition-colors">场景示范</a>
+      <a href="#contact" class="ml-2 px-5 py-2.5 bg-gradient-to-r from-amber-400 to-amber-500 text-brand-dark font-bold text-sm rounded-full hover:shadow-lg hover:shadow-amber-200 transition-all duration-300 hover:-translate-y-0.5">立即体验</a>
+    </div>
+    <button id="mobileToggle" class="md:hidden w-10 h-10 flex items-center justify-center rounded-lg hover:bg-amber-50 transition-colors">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+  </div>
+</nav>
+
+<!-- Mobile menu -->
+<div id="mobileMenu" class="mobile-menu fixed top-0 right-0 bottom-0 w-72 bg-white z-[60] shadow-2xl p-8 pt-20">
+  <button id="mobileClose" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+  </button>
+  <div class="flex flex-col gap-6">
+    <a href="#principles" class="mobile-link text-lg font-medium text-gray-700 hover:text-amber-600">服务原理</a>
+    <a href="#features" class="mobile-link text-lg font-medium text-gray-700 hover:text-amber-600">核心特点</a>
+    <a href="#deploy" class="mobile-link text-lg font-medium text-gray-700 hover:text-amber-600">部署方式</a>
+    <a href="#scenarios" class="mobile-link text-lg font-medium text-gray-700 hover:text-amber-600">场景示范</a>
+    <a href="#contact" class="mt-4 px-5 py-3 bg-gradient-to-r from-amber-400 to-amber-500 text-brand-dark font-bold text-center rounded-full">立即体验</a>
+  </div>
+</div>
+<div id="mobileOverlay" class="fixed inset-0 bg-black/30 z-[55] hidden"></div>
+
+<!-- ===== HERO SECTION ===== -->
+<section class="relative min-h-screen flex items-center justify-center geo-bg overflow-hidden pt-20">
+  <!-- Floating geometric decorations -->
+  <div class="absolute top-[15%] left-[10%] diamond bg-brand-red diamond-float opacity-60" style="width:16px;height:16px"></div>
+  <div class="absolute top-[25%] right-[15%] diamond bg-brand-blue diamond-drift opacity-70" style="width:24px;height:24px"></div>
+  <div class="absolute bottom-[30%] left-[20%] diamond bg-brand-green diamond-float opacity-50" style="width:10px;height:10px;animation-delay:1s"></div>
+  <div class="absolute top-[60%] right-[8%] diamond bg-amber-400 diamond-drift opacity-40" style="width:14px;height:14px;animation-delay:0.5s"></div>
+  <div class="absolute bottom-[15%] right-[25%] diamond bg-brand-red diamond-float opacity-30" style="width:8px;height:8px;animation-delay:2s"></div>
+  <div class="absolute top-[40%] left-[5%] diamond bg-brand-blue diamond-drift opacity-30" style="width:18px;height:18px;animation-delay:1.5s"></div>
+
+  <!-- Large faded chevron background -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none">
+    <svg width="800" height="800" viewBox="0 0 100 100"><path d="M50 85 L10 45 L25 30 L50 55 L75 30 L90 45 Z" fill="#F5C518"/></svg>
+  </div>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-6 text-center">
+    <!-- Logo animation -->
+    <div class="mb-8 flex justify-center">
+      <div class="relative">
+        <div class="absolute inset-0 bg-amber-300/20 rounded-full blur-3xl pulse-ring" style="width:160px;height:160px;top:-20px;left:-20px"></div>
+        <img src="logo.png" alt="Agent Q" class="w-28 h-28 relative z-10 drop-shadow-lg">
+      </div>
+    </div>
+
+    <!-- Brand name -->
+    <div class="mb-6">
+      <h1 class="font-display font-extrabold text-5xl sm:text-6xl md:text-7xl tracking-tight mb-2">
+        <span class="text-gradient-gold">Agent Q</span>
+      </h1>
+      <p class="font-display font-bold text-xl sm:text-2xl text-brand-dark/70 tracking-wide">Q哥 · 龙虾OpenClaw智能体服务</p>
+    </div>
+
+    <!-- Tagline -->
+    <div class="mb-10 relative inline-block">
+      <div class="absolute -left-4 top-1/2 -translate-y-1/2 diamond bg-amber-400 opacity-60" style="width:8px;height:8px"></div>
+      <p class="text-lg sm:text-xl md:text-2xl font-cn font-medium text-gray-700 leading-relaxed px-6">
+        极大释放<span class="text-gradient-gold font-bold">AI潜力</span>，而不是作为玩具
+      </p>
+      <div class="absolute -right-4 top-1/2 -translate-y-1/2 diamond bg-brand-blue opacity-60" style="width:8px;height:8px"></div>
+    </div>
+
+    <!-- Subtitle -->
+    <p class="text-base text-gray-500 max-w-2xl mx-auto mb-12 font-cn leading-relaxed">
+      基于 OpenClaw / Hermes Agent / Opencore 技术基座，以容器化架构驱动企业级AI智能体，<br class="hidden sm:block">让每一个业务场景都拥有专属的智能助手
+    </p>
+
+    <!-- CTA buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+      <a href="#deploy" class="group px-8 py-4 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 text-brand-dark font-bold rounded-full shadow-lg shadow-amber-200/50 hover:shadow-xl hover:shadow-amber-300/50 transition-all duration-300 hover:-translate-y-1 flex items-center gap-2">
+        <span>开始部署</span>
+        <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+      </a>
+      <a href="#scenarios" class="px-8 py-4 border-2 border-amber-300 text-brand-dark font-bold rounded-full hover:bg-amber-50 transition-all duration-300 hover:-translate-y-1">
+        探索场景
+      </a>
+    </div>
+
+    <!-- Trust badges -->
+    <div class="mt-16 flex flex-wrap justify-center gap-8 text-xs text-gray-400 font-medium">
+      <div class="flex items-center gap-2">
+        <div class="diamond bg-brand-green" style="width:6px;height:6px"></div>
+        <span>技术完全开源</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="diamond bg-brand-blue" style="width:6px;height:6px"></div>
+        <span>容器化架构</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="diamond bg-brand-red" style="width:6px;height:6px"></div>
+        <span>AI Coding 驱动</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="diamond bg-amber-400" style="width:6px;height:6px"></div>
+        <span>企业级可靠</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-gray-400">
+    <span class="text-xs font-medium tracking-widest uppercase">Scroll</span>
+    <div class="w-5 h-8 border-2 border-gray-300 rounded-full flex justify-center pt-1.5">
+      <div class="w-1 h-2 bg-amber-400 rounded-full animate-bounce"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PRINCIPLES SECTION ===== -->
+<section id="principles" class="py-24 md:py-32 bg-gradient-to-b from-white to-amber-50/30">
+  <div class="max-w-7xl mx-auto px-6">
+    <!-- Section header -->
+    <div class="text-center mb-20 reveal">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100/60 rounded-full mb-6">
+        <div class="diamond bg-amber-400" style="width:6px;height:6px"></div>
+        <span class="text-xs font-bold text-amber-700 tracking-widest uppercase">How It Works</span>
+      </div>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-brand-dark mb-4">服务原理</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto text-base leading-relaxed font-cn">
+        三层技术架构，从基座到应用的完整智能体服务链路
+      </p>
+    </div>
+
+    <!-- Architecture diagram -->
+    <div class="relative max-w-5xl mx-auto">
+      <!-- Connection lines (hidden on mobile) -->
+      <div class="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-amber-200 to-transparent -translate-y-1/2 z-0"></div>
+
+      <div class="grid md:grid-cols-3 gap-8 relative z-10">
+        <!-- Layer 1: Base -->
+        <div class="reveal reveal-delay-1 bg-white rounded-2xl p-8 shadow-lg shadow-amber-100/50 border border-amber-100/50 card-hover">
+          <div class="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center mb-6 shadow-md shadow-amber-200">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded">Layer 01</span>
+          </div>
+          <h3 class="font-display font-bold text-xl text-brand-dark mb-3">智能基座</h3>
+          <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+            以 <strong class="text-brand-dark">OpenClaw</strong> 为核心引擎，融合 <strong class="text-brand-dark">Hermes Agent</strong> 对话框架与 <strong class="text-brand-dark">Opencore</strong> 底层能力，构建高性能、可扩展的AI智能体运行时。
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-blue-50 text-brand-blue px-2 py-1 rounded font-medium">OpenClaw</span>
+            <span class="text-xs bg-red-50 text-brand-red px-2 py-1 rounded font-medium">Hermes Agent</span>
+            <span class="text-xs bg-green-50 text-brand-green px-2 py-1 rounded font-medium">Opencore</span>
+          </div>
+        </div>
+
+        <!-- Layer 2: Container -->
+        <div class="reveal reveal-delay-2 bg-white rounded-2xl p-8 shadow-lg shadow-amber-100/50 border border-amber-100/50 card-hover">
+          <div class="w-14 h-14 bg-gradient-to-br from-brand-blue to-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-md shadow-blue-200">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-bold text-brand-blue bg-blue-50 px-2 py-0.5 rounded">Layer 02</span>
+          </div>
+          <h3 class="font-display font-bold text-xl text-brand-dark mb-3">容器引擎</h3>
+          <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+            采用<strong class="text-brand-dark">容器单体及集群技术</strong>，每个智能体运行于独立容器中，支持弹性伸缩、故障隔离与秒级部署，从单机到集群无缝迁移。
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-blue-50 text-brand-blue px-2 py-1 rounded font-medium">容器单体</span>
+            <span class="text-xs bg-blue-50 text-brand-blue px-2 py-1 rounded font-medium">集群编排</span>
+            <span class="text-xs bg-blue-50 text-brand-blue px-2 py-1 rounded font-medium">弹性伸缩</span>
+          </div>
+        </div>
+
+        <!-- Layer 3: AI Coding -->
+        <div class="reveal reveal-delay-3 bg-white rounded-2xl p-8 shadow-lg shadow-amber-100/50 border border-amber-100/50 card-hover">
+          <div class="w-14 h-14 bg-gradient-to-br from-brand-green to-emerald-600 rounded-xl flex items-center justify-center mb-6 shadow-md shadow-green-200">
+            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+          </div>
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-xs font-bold text-brand-green bg-green-50 px-2 py-0.5 rounded">Layer 03</span>
+          </div>
+          <h3 class="font-display font-bold text-xl text-brand-dark mb-3">AI Coding 驱动</h3>
+          <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+            深度集成 <strong class="text-brand-dark">AI Coding 技术栈</strong>，智能体具备代码生成、逻辑推理与工具调用能力，真正实现从"对话"到"执行"的跃迁。
+          </p>
+          <div class="flex flex-wrap gap-2">
+            <span class="text-xs bg-green-50 text-brand-green px-2 py-1 rounded font-medium">AI Coding</span>
+            <span class="text-xs bg-green-50 text-brand-green px-2 py-1 rounded font-medium">工具调用</span>
+            <span class="text-xs bg-green-50 text-brand-green px-2 py-1 rounded font-medium">逻辑推理</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES SECTION ===== -->
+<section id="features" class="py-24 md:py-32 relative overflow-hidden">
+  <!-- Background decoration -->
+  <div class="absolute top-0 right-0 w-96 h-96 bg-amber-100/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+  <div class="absolute bottom-0 left-0 w-64 h-64 bg-blue-100/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"></div>
+
+  <div class="max-w-7xl mx-auto px-6 relative z-10">
+    <div class="text-center mb-20 reveal">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100/60 rounded-full mb-6">
+        <div class="diamond bg-brand-blue" style="width:6px;height:6px"></div>
+        <span class="text-xs font-bold text-amber-700 tracking-widest uppercase">Core Strengths</span>
+      </div>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-brand-dark mb-4">三大核心特点</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto text-base leading-relaxed font-cn">
+        不做花架子，只做真正能落地的企业级智能体服务
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-10">
+      <!-- Feature 1 -->
+      <div class="reveal reveal-delay-1 group text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-brand-green/10 to-brand-green/5 rounded-2xl flex items-center justify-center border border-brand-green/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-green-100 transition-all duration-500">
+          <svg class="w-10 h-10 text-brand-green" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-brand-dark mb-3">技术完全开源</h3>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn max-w-xs mx-auto">
+          核心引擎与智能体框架全部开源，拒绝黑箱。企业可自主审计、二次开发，掌握技术主权，不被供应商锁定。
+        </p>
+        <div class="mt-5 flex justify-center">
+          <div class="w-12 h-0.5 bg-gradient-to-r from-transparent via-brand-green to-transparent rounded-full group-hover:w-20 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="reveal reveal-delay-2 group text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-amber-400/10 to-amber-400/5 rounded-2xl flex items-center justify-center border border-amber-300/30 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-amber-100 transition-all duration-500">
+          <svg class="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-brand-dark mb-3">按需灵活获取</h3>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn max-w-xs mx-auto">
+          模块化智能体设计，按业务需求自由组合与扩展。无需一次性重金投入，从单一场景起步，渐进式释放AI生产力。
+        </p>
+        <div class="mt-5 flex justify-center">
+          <div class="w-12 h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent rounded-full group-hover:w-20 transition-all duration-500"></div>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="reveal reveal-delay-3 group text-center">
+        <div class="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-brand-blue/10 to-brand-blue/5 rounded-2xl flex items-center justify-center border border-brand-blue/20 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-100 transition-all duration-500">
+          <svg class="w-10 h-10 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-brand-dark mb-3">AI潜力全面释放</h3>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn max-w-xs mx-auto">
+          不止于聊天问答——通过 AI Coding 与工具链深度集成，智能体可直接操控系统、处理文件、执行工作流，成为真正的生产力引擎。
+        </p>
+        <div class="mt-5 flex justify-center">
+          <div class="w-12 h-0.5 bg-gradient-to-r from-transparent via-brand-blue to-transparent rounded-full group-hover:w-20 transition-all duration-500"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DEPLOYMENT SECTION ===== -->
+<section id="deploy" class="py-24 md:py-32 bg-gradient-to-b from-amber-50/20 to-white relative">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-20 reveal">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100/60 rounded-full mb-6">
+        <div class="diamond bg-brand-red" style="width:6px;height:6px"></div>
+        <span class="text-xs font-bold text-amber-700 tracking-widest uppercase">Deployment</span>
+      </div>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-brand-dark mb-4">灵活部署，自由选择</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto text-base leading-relaxed font-cn">
+        从个人开发者到大型企业，总有适合您的部署方案
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+      <!-- Option 1: Self Deploy -->
+      <div class="reveal reveal-delay-1 deploy-card bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300">
+        <div class="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mb-6">
+          <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-brand-dark mb-2">自行部署</h3>
+        <p class="text-xs text-amber-600 font-bold mb-4 tracking-wide">开源免费</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-6">
+          完整开源代码，Docker 一键启动。适合有技术能力的团队，完全掌控数据与服务，零授权费用。
+        </p>
+        <ul class="space-y-2.5 mb-8">
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">完整源码与文档</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">Docker / K8s 部署</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">社区支持</span></li>
+        </ul>
+        <a href="#contact" class="block text-center py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-amber-400 hover:text-amber-600 transition-all font-cn">获取源码</a>
+      </div>
+
+      <!-- Option 2: Private Deploy (Highlighted) -->
+      <div class="reveal reveal-delay-2 deploy-card bg-brand-dark rounded-2xl p-8 shadow-xl relative overflow-hidden md:-mt-4 md:mb-[-16px]">
+        <div class="absolute top-0 right-0 px-4 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 text-brand-dark text-xs font-bold rounded-bl-xl">推荐</div>
+        <div class="w-12 h-12 bg-amber-400/20 rounded-xl flex items-center justify-center mb-6">
+          <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-white mb-2">私有定制部署</h3>
+        <p class="text-xs text-amber-400 font-bold mb-4 tracking-wide">企业首选</p>
+        <p class="text-gray-400 text-sm leading-relaxed font-cn mb-6">
+          专业团队驻场或远程实施，根据业务需求深度定制智能体角色、知识库与工作流，数据完全私有化。
+        </p>
+        <ul class="space-y-2.5 mb-8">
+          <li class="flex items-start gap-2 text-sm text-gray-300"><svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">专属定制开发</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-300"><svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">数据完全私有化</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-300"><svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">7x24 专属运维支持</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-300"><svg class="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">SLA 服务保障</span></li>
+        </ul>
+        <a href="#contact" class="block text-center py-3 bg-gradient-to-r from-amber-400 to-amber-500 rounded-xl text-sm font-bold text-brand-dark hover:shadow-lg hover:shadow-amber-400/30 transition-all font-cn">预约咨询</a>
+      </div>
+
+      <!-- Option 3: Cloud Service -->
+      <div class="reveal reveal-delay-3 deploy-card bg-white rounded-2xl p-8 shadow-md hover:shadow-xl transition-all duration-300">
+        <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center mb-6">
+          <svg class="w-6 h-6 text-brand-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+        </div>
+        <h3 class="font-display font-bold text-xl text-brand-dark mb-2">云端服务</h3>
+        <p class="text-xs text-brand-blue font-bold mb-4 tracking-wide">即开即用</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-6">
+          零运维负担，开箱即用的云端智能体平台。按用量计费，弹性扩容，适合快速验证与中小规模业务。
+        </p>
+        <ul class="space-y-2.5 mb-8">
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">免运维，即开即用</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">按量弹性计费</span></li>
+          <li class="flex items-start gap-2 text-sm text-gray-600"><svg class="w-4 h-4 text-brand-green mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span class="font-cn">自动弹性扩容</span></li>
+        </ul>
+        <a href="#contact" class="block text-center py-3 border-2 border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-brand-blue hover:text-brand-blue transition-all font-cn">免费试用</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCENARIOS SECTION ===== -->
+<section id="scenarios" class="py-24 md:py-32 relative overflow-hidden">
+  <div class="absolute inset-0 geo-bg"></div>
+  <div class="max-w-7xl mx-auto px-6 relative z-10">
+    <div class="text-center mb-20 reveal">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-100/60 rounded-full mb-6">
+        <div class="diamond bg-amber-400" style="width:6px;height:6px"></div>
+        <span class="text-xs font-bold text-amber-700 tracking-widest uppercase">Agents</span>
+      </div>
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-brand-dark mb-4">小Q家族 · 场景智能体</h2>
+      <p class="text-gray-500 max-w-2xl mx-auto text-base leading-relaxed font-cn">
+        每一个"小Q"都是深度定制的行业角色，拥有专属人格、专业知识与工具能力
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <!-- Agent 1: 助教阿Q -->
+      <div class="reveal reveal-delay-1 group bg-white rounded-2xl p-6 shadow-md border border-gray-100 card-hover relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-brand-blue/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="scenario-icon bg-gradient-to-br from-blue-100 to-blue-50 mb-5">
+          <span>🎓</span>
+        </div>
+        <h3 class="font-display font-bold text-lg text-brand-dark mb-1.5">助教阿Q</h3>
+        <p class="text-xs text-brand-blue font-bold mb-3">教育 · 培训</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+          智能答疑、作业批改、学情分析、个性化学习路径规划。不只是知识检索，而是真正理解每位学生的学习节奏。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-[10px] bg-blue-50 text-brand-blue px-2 py-0.5 rounded-full font-medium">课程答疑</span>
+          <span class="text-[10px] bg-blue-50 text-brand-blue px-2 py-0.5 rounded-full font-medium">作业辅导</span>
+          <span class="text-[10px] bg-blue-50 text-brand-blue px-2 py-0.5 rounded-full font-medium">学情报告</span>
+        </div>
+      </div>
+
+      <!-- Agent 2: 财神Q爹 -->
+      <div class="reveal reveal-delay-2 group bg-white rounded-2xl p-6 shadow-md border border-gray-100 card-hover relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-amber-400/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="scenario-icon bg-gradient-to-br from-amber-100 to-amber-50 mb-5">
+          <span>💰</span>
+        </div>
+        <h3 class="font-display font-bold text-lg text-brand-dark mb-1.5">财神Q爹</h3>
+        <p class="text-xs text-amber-600 font-bold mb-3">财务 · 金融</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+          财务报表自动生成、智能记账、税务风险预警、投资分析辅助。将枯燥的数字工作交给AI，让决策有据可依。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-medium">财务分析</span>
+          <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-medium">智能记账</span>
+          <span class="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-medium">风险预警</span>
+        </div>
+      </div>
+
+      <!-- Agent 3: 笔杆Q姐 -->
+      <div class="reveal reveal-delay-3 group bg-white rounded-2xl p-6 shadow-md border border-gray-100 card-hover relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-brand-red/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="scenario-icon bg-gradient-to-br from-red-100 to-red-50 mb-5">
+          <span>✍️</span>
+        </div>
+        <h3 class="font-display font-bold text-lg text-brand-dark mb-1.5">笔杆Q姐</h3>
+        <p class="text-xs text-brand-red font-bold mb-3">内容 · 创作</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+          公文撰写、营销文案、内容策划、多语言翻译。深谙各类文体风格，从严肃公文到创意文案，信手拈来。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-[10px] bg-red-50 text-brand-red px-2 py-0.5 rounded-full font-medium">公文写作</span>
+          <span class="text-[10px] bg-red-50 text-brand-red px-2 py-0.5 rounded-full font-medium">营销文案</span>
+          <span class="text-[10px] bg-red-50 text-brand-red px-2 py-0.5 rounded-full font-medium">多语翻译</span>
+        </div>
+      </div>
+
+      <!-- Agent 4: 开发Q哥 -->
+      <div class="reveal reveal-delay-4 group bg-white rounded-2xl p-6 shadow-md border border-gray-100 card-hover relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-brand-green/5 rounded-full -translate-y-8 translate-x-8 group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="scenario-icon bg-gradient-to-br from-green-100 to-green-50 mb-5">
+          <span>💻</span>
+        </div>
+        <h3 class="font-display font-bold text-lg text-brand-dark mb-1.5">开发Q哥</h3>
+        <p class="text-xs text-brand-green font-bold mb-3">研发 · 运维</p>
+        <p class="text-gray-500 text-sm leading-relaxed font-cn mb-4">
+          代码生成与审查、自动化测试、CI/CD管理、故障排查。不是简单的代码补全，而是真正理解工程上下文的开发伙伴。
+        </p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="text-[10px] bg-green-50 text-brand-green px-2 py-0.5 rounded-full font-medium">代码生成</span>
+          <span class="text-[10px] bg-green-50 text-brand-green px-2 py-0.5 rounded-full font-medium">自动化测试</span>
+          <span class="text-[10px] bg-green-50 text-brand-green px-2 py-0.5 rounded-full font-medium">故障排查</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- More agents CTA -->
+    <div class="reveal text-center">
+      <div class="inline-flex flex-col sm:flex-row items-center gap-4 bg-gradient-to-r from-amber-50 to-amber-100/50 rounded-2xl px-8 py-6 border border-amber-200/50">
+        <div class="flex -space-x-3">
+          <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-lg border-2 border-white">🏥</div>
+          <div class="w-10 h-10 rounded-full bg-cyan-100 flex items-center justify-center text-lg border-2 border-white">⚖️</div>
+          <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center text-lg border-2 border-white">🛒</div>
+          <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm border-2 border-white font-bold text-gray-500">+N</div>
+        </div>
+        <div class="text-center sm:text-left">
+          <p class="font-display font-bold text-brand-dark">更多小Q · 等你定义</p>
+          <p class="text-sm text-gray-500 font-cn">医疗、法律、电商、客服…… 每个行业都值得拥有专属智能体</p>
+        </div>
+        <a href="#contact" class="px-6 py-2.5 bg-brand-dark text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors flex-shrink-0">定制咨询</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section id="contact" class="py-24 md:py-32 relative overflow-hidden">
+  <div class="absolute inset-0 bg-gradient-to-br from-brand-dark via-[#1A1A2E] to-[#0F0F1F]"></div>
+  <!-- Gold glow -->
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-400/10 rounded-full blur-3xl"></div>
+  <!-- Floating diamonds -->
+  <div class="absolute top-[20%] left-[10%] diamond bg-amber-400/30 diamond-float" style="width:12px;height:12px"></div>
+  <div class="absolute bottom-[25%] right-[12%] diamond bg-brand-blue/30 diamond-drift" style="width:16px;height:16px"></div>
+  <div class="absolute top-[60%] left-[80%] diamond bg-brand-red/20 diamond-float" style="width:8px;height:8px;animation-delay:1s"></div>
+
+  <div class="relative z-10 max-w-3xl mx-auto px-6 text-center">
+    <div class="reveal">
+      <img src="logo.png" alt="Agent Q" class="w-20 h-20 mx-auto mb-8 drop-shadow-2xl">
+      <h2 class="font-display font-extrabold text-3xl sm:text-4xl md:text-5xl text-white mb-4">
+        开始释放<span class="text-gradient-gold">AI潜力</span>
+      </h2>
+      <p class="text-gray-400 text-lg mb-10 font-cn leading-relaxed">
+        无论您是想自主探索，还是需要专业团队的全程护航<br class="hidden sm:block">Agent Q 都已准备就绪
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <a href="/cdn-cgi/l/email-protection#e784888993868493a7868082899396c9868e" class="group px-8 py-4 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400 text-brand-dark font-bold rounded-full shadow-lg shadow-amber-400/20 hover:shadow-xl hover:shadow-amber-400/30 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+          <span>预约演示</span>
+          <svg class="w-5 h-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+        <a href="https://github.com" target="_blank" class="px-8 py-4 border-2 border-white/20 text-white font-bold rounded-full hover:border-amber-400/50 hover:text-amber-400 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          <span>GitHub 开源</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="bg-brand-dark border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-6 py-12">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+      <!-- Logo & brand -->
+      <div class="flex items-center gap-3">
+        <img src="logo.png" alt="Agent Q" class="w-8 h-8 opacity-80">
+        <div>
+          <span class="font-display font-bold text-white/90">Agent Q</span>
+          <span class="text-xs text-amber-400/70 ml-1.5">OpenClaw</span>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="flex flex-wrap justify-center gap-6 text-sm">
+        <a href="#principles" class="text-gray-500 hover:text-amber-400 transition-colors font-cn">服务原理</a>
+        <a href="#features" class="text-gray-500 hover:text-amber-400 transition-colors font-cn">核心特点</a>
+        <a href="#deploy" class="text-gray-500 hover:text-amber-400 transition-colors font-cn">部署方式</a>
+        <a href="#scenarios" class="text-gray-500 hover:text-amber-400 transition-colors font-cn">场景示范</a>
+      </div>
+
+      <!-- Copyright -->
+      <p class="text-xs text-gray-600 font-cn">
+        &copy; 2026 Agent Q · 龙虾OpenClaw智能体服务
+      </p>
+    </div>
+  </div>
+</footer>
+
+<!-- ===== SCRIPTS ===== -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js" defer></script><script>
+// Navbar scroll effect
+const nav = document.getElementById('mainNav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Mobile menu
+const mobileToggle = document.getElementById('mobileToggle');
+const mobileMenu = document.getElementById('mobileMenu');
+const mobileClose = document.getElementById('mobileClose');
+const mobileOverlay = document.getElementById('mobileOverlay');
+const mobileLinks = document.querySelectorAll('.mobile-link');
+
+function openMenu() { mobileMenu.classList.add('open'); mobileOverlay.classList.remove('hidden'); document.body.style.overflow='hidden'; }
+function closeMenu() { mobileMenu.classList.remove('open'); mobileOverlay.classList.add('hidden'); document.body.style.overflow=''; }
+mobileToggle.addEventListener('click', openMenu);
+mobileClose.addEventListener('click', closeMenu);
+mobileOverlay.addEventListener('click', closeMenu);
+mobileLinks.forEach(l => l.addEventListener('click', closeMenu));
+
+// Scroll reveal
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('active');
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+reveals.forEach(el => observer.observe(el));
+
+// Smooth scroll for anchor links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      const offset = 80;
+      const top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+      window.scrollTo({ top, behavior:'smooth' });
+    }
+  });
+});
+</script>
+
+</body>
+</html>
